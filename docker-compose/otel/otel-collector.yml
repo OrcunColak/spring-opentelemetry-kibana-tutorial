@@ -1,0 +1,43 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:9090"
+    send_timestamps: true
+  logging:
+    loglevel: info
+  jaeger:
+    endpoint: jaeger-collector:14250
+    tls:
+      insecure: true
+  elasticsearch:
+    endpoints: [ http://elasticsearch:9200 ]
+    index: "applogs"
+    tls:
+      insecure: true
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [pprof, zpages, health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [logging, jaeger]
+    metrics:
+      receivers: [otlp]
+      exporters: [logging, prometheus]
+    logs:
+      receivers: [otlp]
+      exporters: [logging, elasticsearch]
